@@ -110,6 +110,53 @@ public class UserServiceImpl implements UserService{
 
     }
 
+    @Override
+    public BankResponse transfer(TransferRequest request) {
+
+        User sourceUser = userRepository.findByAccountNumber(request.getSourceAccountNumber());
+        if(sourceUser.getAccountBalance().compareTo(request.getAmount()) < 0){
+            return buildResponse(AccountUtils.INSUFFICIENT_BALANCE_CODE, AccountUtils.INSUFFICIENT_BALANCE_MESSAGE, null);
+        }
+
+        if(!userRepository.existsByAccountNumber(request.getDestinationAccountNumber())){
+            return buildResponse(AccountUtils.ACCOUNT_NOT_EXISTS_CODE, AccountUtils.ACCOUNT_NOT_EXISTS_MESSAGE, null);
+        }
+        User destinationUser = userRepository.findByAccountNumber(request.getDestinationAccountNumber());
+
+        processTransfer(sourceUser, destinationUser, request.getAmount());
+
+        return buildResponse(AccountUtils.ACCOUNT_TRANSFER_SUCCESS, AccountUtils.ACCOUNT_TRANSFER_SUCCESS_MESSAGE, null);
+    }
+
+    private void processTransfer(User sourceUser, User destinationUser, BigDecimal amount){
+        sourceUser.setAccountBalance(sourceUser.getAccountBalance().subtract(amount));
+        destinationUser.setAccountBalance(destinationUser.getAccountBalance().add(amount));
+
+        userRepository.save(sourceUser);
+        userRepository.save(destinationUser);
+
+        EmailDetails debitAlert = EmailDetails.builder()
+                .subject("DEBIT ALERT")
+                .recipient(sourceUser.getEmail())
+                .messageBody("The sum of " + amount
+                        + " has been deducted from your account! Your current balance is "
+                        + sourceUser.getAccountBalance())
+                .build();
+
+        EmailDetails creditAlert = EmailDetails.builder()
+                .subject("CREDIT ALERT")
+                .recipient(destinationUser.getEmail())
+                .messageBody("The sum of " + amount + " has been sent to your account from "
+                        + sourceUser.getFirstName() + " " + sourceUser.getLastName()
+                        + ". Your current balance is "
+                        + destinationUser.getAccountBalance())
+                .build();
+
+        emailService.sendEmailAlert(debitAlert);
+        emailService.sendEmailAlert(creditAlert);
+    }
+
+
     private BankResponse buildResponse(String code, String message, AccountInfo info) {
         return BankResponse.builder()
                 .responseCode(code)
