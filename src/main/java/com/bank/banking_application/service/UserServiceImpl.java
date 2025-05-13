@@ -18,6 +18,9 @@ public class UserServiceImpl implements UserService{
     @Autowired
     EmailService emailService;
 
+    @Autowired
+    TransactionService transactionService;
+
 
     @Override
     public BankResponse createAccount(UserRequest userRequest) {
@@ -81,6 +84,13 @@ public class UserServiceImpl implements UserService{
         userToCredit.setAccountBalance(userToCredit.getAccountBalance().add(request.getAmount()));
         userRepository.save(userToCredit);
 
+        TransactionDTO transactionDTO = TransactionDTO.builder()
+                .accountNumber(userToCredit.getAccountNumber())
+                .amount(request.getAmount())
+                .transactionType("CREDIT")
+                .build();
+        transactionService.saveTransaction(transactionDTO);
+
         return buildResponse(
                 AccountUtils.ACCOUNT_CREDITED_SUCCESS,
                 AccountUtils.ACCOUNT_CREDITED_SUCCESS_MESSAGE,
@@ -101,6 +111,13 @@ public class UserServiceImpl implements UserService{
 
         userToDebit.setAccountBalance(userToDebit.getAccountBalance().subtract(request.getAmount()));
         userRepository.save(userToDebit);
+
+        TransactionDTO transactionDTO = TransactionDTO.builder()
+                .accountNumber(userToDebit.getAccountNumber())
+                .amount(request.getAmount())
+                .transactionType("DEBIT")
+                .build();
+        transactionService.saveTransaction(transactionDTO);
 
         return buildResponse(
                 AccountUtils.ACCOUNT_DEBITED_SUCCESS,
@@ -124,6 +141,20 @@ public class UserServiceImpl implements UserService{
         User destinationUser = userRepository.findByAccountNumber(request.getDestinationAccountNumber());
 
         processTransfer(sourceUser, destinationUser, request.getAmount());
+
+        TransactionDTO transactionDTO1 = TransactionDTO.builder()
+                .accountNumber(sourceUser.getAccountNumber())
+                .amount(request.getAmount())
+                .transactionType("DEBIT")
+                .build();
+        transactionService.saveTransaction(transactionDTO1);
+
+        TransactionDTO transactionDTO2 = TransactionDTO.builder()
+                .accountNumber(destinationUser.getAccountNumber())
+                .amount(request.getAmount())
+                .transactionType("CREDIT")
+                .build();
+        transactionService.saveTransaction(transactionDTO2);
 
         return buildResponse(AccountUtils.ACCOUNT_TRANSFER_SUCCESS, AccountUtils.ACCOUNT_TRANSFER_SUCCESS_MESSAGE, null);
     }
