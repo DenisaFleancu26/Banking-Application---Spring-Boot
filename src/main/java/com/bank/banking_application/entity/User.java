@@ -24,9 +24,6 @@ import lombok.Setter;
 @Builder
 @Entity
 @Table(name = "users")
-/**
-    User entity class representing a user in the banking application.
- */
 public class User {
 
     @Id
