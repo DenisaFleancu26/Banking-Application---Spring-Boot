@@ -59,8 +59,7 @@ public class UserServiceImpl implements UserService{
 
     @Override
     public BankResponse balanceEnquiry(EnquiryRequest enquiryRequest) {
-        boolean isAccountExists = userRepository.existsByAccountNumber(enquiryRequest.getAccountNumber());
-        if(!isAccountExists){
+        if (!userRepository.existsByAccountNumber(enquiryRequest.getAccountNumber())){
             return buildResponse(AccountUtils.ACCOUNT_NOT_EXISTS_CODE, AccountUtils.ACCOUNT_NOT_EXISTS_MESSAGE, null);
         }
 
@@ -74,8 +73,7 @@ public class UserServiceImpl implements UserService{
 
     @Override
     public BankResponse creditAccount(CreditDebitRequest request) {
-        boolean isAccountExists = userRepository.existsByAccountNumber(request.getAccountNumber());
-        if(!isAccountExists){
+        if (!userRepository.existsByAccountNumber(request.getAccountNumber())){
             return buildResponse(AccountUtils.ACCOUNT_NOT_EXISTS_CODE, AccountUtils.ACCOUNT_NOT_EXISTS_MESSAGE, null);
         }
 
@@ -92,24 +90,24 @@ public class UserServiceImpl implements UserService{
 
     @Override
     public BankResponse debitAccount(CreditDebitRequest request) {
-        boolean isAccountExists = userRepository.existsByAccountNumber(request.getAccountNumber());
-        if(!isAccountExists){
+        if (!userRepository.existsByAccountNumber(request.getAccountNumber())){
             return buildResponse(AccountUtils.ACCOUNT_NOT_EXISTS_CODE, AccountUtils.ACCOUNT_NOT_EXISTS_MESSAGE, null);
         }
 
         User userToDebit = userRepository.findByAccountNumber(request.getAccountNumber());
         if(userToDebit.getAccountBalance().compareTo(request.getAmount()) < 0){
             return buildResponse(AccountUtils.INSUFFICIENT_BALANCE_CODE, AccountUtils.INSUFFICIENT_BALANCE_MESSAGE, null);
-        }else{
-            userToDebit.setAccountBalance(userToDebit.getAccountBalance().subtract(request.getAmount()));
-            userRepository.save(userToDebit);
-
-            return buildResponse(
-                    AccountUtils.ACCOUNT_DEBITED_SUCCESS,
-                    AccountUtils.ACCOUNT_DEBITED_SUCCESS_MESSAGE,
-                    buildAccountInfo(userToDebit)
-            );
         }
+
+        userToDebit.setAccountBalance(userToDebit.getAccountBalance().subtract(request.getAmount()));
+        userRepository.save(userToDebit);
+
+        return buildResponse(
+                AccountUtils.ACCOUNT_DEBITED_SUCCESS,
+                AccountUtils.ACCOUNT_DEBITED_SUCCESS_MESSAGE,
+                buildAccountInfo(userToDebit)
+        );
+
     }
 
     private BankResponse buildResponse(String code, String message, AccountInfo info) {
