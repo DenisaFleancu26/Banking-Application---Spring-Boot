@@ -1,9 +1,6 @@
 package com.bank.banking_application.service;
 
-import com.bank.banking_application.dto.AccountInfo;
-import com.bank.banking_application.dto.BankResponse;
-import com.bank.banking_application.dto.EmailDetails;
-import com.bank.banking_application.dto.UserRequest;
+import com.bank.banking_application.dto.*;
 import com.bank.banking_application.entity.User;
 import com.bank.banking_application.repository.UserRepository;
 import com.bank.banking_application.utils.AccountUtils;
@@ -20,6 +17,7 @@ public class UserServiceImpl implements UserService{
 
     @Autowired
     EmailService emailService;
+
 
     @Override
     public BankResponse createAccount(UserRequest userRequest) {
@@ -66,6 +64,29 @@ public class UserServiceImpl implements UserService{
                         .accountBalance(savedUser.getAccountBalance())
                         .accountNumber(savedUser.getAccountNumber())
                         .accountName(savedUser.getFirstName() + " " + savedUser.getLastName())
+                        .build())
+                .build();
+    }
+
+    @Override
+    public BankResponse balanceEnquiry(EnquiryRequest enquiryRequest) {
+        boolean isAccountExists = userRepository.existsByAccountNumber(enquiryRequest.getAccountNumber());
+        if(!isAccountExists){
+            return BankResponse.builder()
+                    .responseMessage(AccountUtils.ACCOUNT_NOT_EXISTS_MESSAGE)
+                    .responseCode(AccountUtils.ACCOUNT_NOT_EXISTS_CODE)
+                    .accountInfo(null)
+                    .build();
+        }
+
+        User foundUser = userRepository.findByAccountNumber(enquiryRequest.getAccountNumber());
+        return BankResponse.builder()
+                .responseCode(AccountUtils.ACCOUNT_FOUND_CODE)
+                .responseMessage(AccountUtils.ACCOUNT_FOUND_MESSAGE)
+                .accountInfo(AccountInfo.builder()
+                        .accountBalance(foundUser.getAccountBalance())
+                        .accountNumber(enquiryRequest.getAccountNumber())
+                        .accountName(foundUser.getFirstName() + " " + foundUser.getLastName())
                         .build())
                 .build();
     }
