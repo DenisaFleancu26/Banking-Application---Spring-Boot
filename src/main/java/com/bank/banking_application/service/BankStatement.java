@@ -1,5 +1,6 @@
 package com.bank.banking_application.service;
 
+import com.bank.banking_application.dto.EmailDetails;
 import com.bank.banking_application.entity.Transaction;
 import com.bank.banking_application.entity.User;
 import com.bank.banking_application.repository.TransactionRepository;
@@ -10,6 +11,7 @@ import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -21,14 +23,17 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Service
-@AllArgsConstructor
 @Slf4j
 public class BankStatement {
 
+    @Autowired
     private TransactionRepository transactionRepository;
+    @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private EmailService emailService;
 
-    @Value("${spring.mail.username}")
+    @Value("${bank.statement.file}")
     private String FILE;
 
     public List<Transaction> generateStatement(String accountNumber, String startDate, String endDate) throws DocumentException, IOException {
@@ -40,6 +45,14 @@ public class BankStatement {
 
         User user = userRepository.findByAccountNumber(accountNumber);
         designStatement(transactions, startDate, endDate, user);
+
+        EmailDetails emailDetails = EmailDetails.builder()
+                .recipient(user.getEmail())
+                .subject("STATEMENT OF ACCOUNT")
+                .messageBody("Kindly find your request account statement attached!")
+                .attachment(FILE)
+                .build();
+        emailService.sendEmailWithAttachment(emailDetails);
 
         return transactions;
     }
