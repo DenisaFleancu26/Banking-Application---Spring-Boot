@@ -20,4 +20,7 @@ public class EmailDetails {
 
     @Schema(name = "Email Subject")
     private String subject;
+
+    @Schema(name = "Email Attachment")
+    private String attachment;
 }
