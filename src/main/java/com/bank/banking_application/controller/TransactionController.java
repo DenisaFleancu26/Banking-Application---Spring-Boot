@@ -1,7 +1,7 @@
 package com.bank.banking_application.controller;
 
 import com.bank.banking_application.entity.Transaction;
-import com.bank.banking_application.service.BankStatement;
+import com.bank.banking_application.service.impl.BankStatement;
 import com.itextpdf.text.DocumentException;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;

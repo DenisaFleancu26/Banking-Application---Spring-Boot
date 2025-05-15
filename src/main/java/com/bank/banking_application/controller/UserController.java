@@ -1,8 +1,13 @@
 package com.bank.banking_application.controller;
 
 import com.bank.banking_application.dto.*;
-import com.bank.banking_application.service.AuthService;
-import com.bank.banking_application.service.UserService;
+import com.bank.banking_application.dto.request.CreditDebitRequest;
+import com.bank.banking_application.dto.request.EnquiryRequest;
+import com.bank.banking_application.dto.request.TransferRequest;
+import com.bank.banking_application.dto.request.UserRequest;
+import com.bank.banking_application.dto.response.BankResponse;
+import com.bank.banking_application.service.interfaces.AuthService;
+import com.bank.banking_application.service.interfaces.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -34,7 +39,7 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public BankResponse login(@RequestBody LoginDto loginDto){
+    public BankResponse login(@RequestBody LoginDTO loginDto){
         return authService.login(loginDto);
     }
 

@@ -1,6 +1,7 @@
-package com.bank.banking_application.dto;
+package com.bank.banking_application.dto.response;
 
 
+import com.bank.banking_application.dto.AccountInfo;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -1,4 +1,4 @@
-package com.bank.banking_application.service;
+package com.bank.banking_application.service.impl;
 
 import com.bank.banking_application.repository.UserRepository;
 import lombok.AllArgsConstructor;
