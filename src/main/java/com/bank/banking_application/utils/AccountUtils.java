@@ -1,5 +1,9 @@
 package com.bank.banking_application.utils;
 
+import com.bank.banking_application.dto.AccountInfo;
+import com.bank.banking_application.dto.BankResponse;
+import com.bank.banking_application.entity.User;
+
 import java.time.Year;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -40,6 +44,22 @@ public class AccountUtils {
         int randomNum = ThreadLocalRandom.current().nextInt(min, max);
 
         return String.valueOf(currentYear) + String.valueOf(randomNum);
+    }
+
+    public static BankResponse buildResponse(String code, String message, AccountInfo info) {
+        return BankResponse.builder()
+                .responseCode(code)
+                .responseMessage(message)
+                .accountInfo(info)
+                .build();
+    }
+
+    public static AccountInfo buildAccountInfo(User user) {
+        return AccountInfo.builder()
+                .accountName(user.getFirstName() + " " + user.getLastName())
+                .accountNumber(user.getAccountNumber())
+                .accountBalance(user.getAccountBalance())
+                .build();
     }
 
 }
