@@ -1,7 +1,6 @@
-package com.bank.banking_application.service;
+package com.bank.banking_application.service.interfaces;
 
 import com.bank.banking_application.dto.TransactionDTO;
-import com.bank.banking_application.entity.Transaction;
 
 public interface TransactionService {
 

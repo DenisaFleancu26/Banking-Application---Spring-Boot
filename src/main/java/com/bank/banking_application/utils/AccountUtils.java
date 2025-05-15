@@ -1,7 +1,7 @@
 package com.bank.banking_application.utils;
 
 import com.bank.banking_application.dto.AccountInfo;
-import com.bank.banking_application.dto.BankResponse;
+import com.bank.banking_application.dto.response.BankResponse;
 import com.bank.banking_application.entity.User;
 
 import java.time.Year;

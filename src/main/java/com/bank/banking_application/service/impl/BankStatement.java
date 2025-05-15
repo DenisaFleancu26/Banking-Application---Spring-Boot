@@ -1,15 +1,15 @@
-package com.bank.banking_application.service;
+package com.bank.banking_application.service.impl;
 
 import com.bank.banking_application.dto.EmailDetails;
 import com.bank.banking_application.entity.Transaction;
 import com.bank.banking_application.entity.User;
 import com.bank.banking_application.repository.TransactionRepository;
 import com.bank.banking_application.repository.UserRepository;
+import com.bank.banking_application.service.interfaces.EmailService;
 import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

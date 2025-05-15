@@ -1,9 +1,13 @@
-package com.bank.banking_application.service;
+package com.bank.banking_application.service.impl;
 
 import com.bank.banking_application.config.JwtTokenProvider;
 import com.bank.banking_application.dto.*;
+import com.bank.banking_application.dto.request.UserRequest;
+import com.bank.banking_application.dto.response.BankResponse;
 import com.bank.banking_application.entity.User;
 import com.bank.banking_application.repository.UserRepository;
+import com.bank.banking_application.service.interfaces.EmailService;
+import com.bank.banking_application.service.interfaces.AuthService;
 import com.bank.banking_application.utils.AccountUtils;
 import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -24,7 +28,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public BankResponse login(LoginDto loginDto){
+    public BankResponse login(LoginDTO loginDto){
         Authentication authentication = null;
         authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginDto.getEmail(), loginDto.getPassword())

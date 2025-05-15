@@ -1,9 +1,16 @@
-package com.bank.banking_application.service;
+package com.bank.banking_application.service.impl;
 
 import com.bank.banking_application.config.JwtTokenProvider;
 import com.bank.banking_application.dto.*;
+import com.bank.banking_application.dto.request.CreditDebitRequest;
+import com.bank.banking_application.dto.request.EnquiryRequest;
+import com.bank.banking_application.dto.request.TransferRequest;
+import com.bank.banking_application.dto.response.BankResponse;
 import com.bank.banking_application.entity.User;
 import com.bank.banking_application.repository.UserRepository;
+import com.bank.banking_application.service.interfaces.EmailService;
+import com.bank.banking_application.service.interfaces.TransactionService;
+import com.bank.banking_application.service.interfaces.UserService;
 import com.bank.banking_application.utils.AccountUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -13,7 +20,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 
 @Service
-public class UserServiceImpl implements UserService{
+public class UserServiceImpl implements UserService {
 
     @Autowired
     UserRepository userRepository;
