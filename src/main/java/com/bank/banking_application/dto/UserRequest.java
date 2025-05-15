@@ -42,6 +42,11 @@ public class UserRequest {
     @Email(message = "Email must be valid!")
     private String email;
 
+    @Schema(name = "Password")
+    @NotBlank(message = "Password is required!")
+    @Email(message = "Password must be valid!")
+    private String password;
+
     @Schema(name = "Phone Number")
     @NotBlank(message = "Phone number is required!")
     @Size(min = 10, max = 15, message = "Phone number must be between 10 and 15 digits!")
