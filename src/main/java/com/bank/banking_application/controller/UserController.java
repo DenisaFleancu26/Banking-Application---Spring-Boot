@@ -1,6 +1,7 @@
 package com.bank.banking_application.controller;
 
 import com.bank.banking_application.dto.*;
+import com.bank.banking_application.service.AuthService;
 import com.bank.banking_application.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -16,6 +17,9 @@ public class UserController {
     @Autowired
     UserService userService;
 
+    @Autowired
+    AuthService authService;
+
     @Operation(
             summary = "Create New User Account",
             description = "Creates a new bank user account and generates a unique account number."
@@ -24,10 +28,16 @@ public class UserController {
             responseCode = "201",
             description = "Account successfully created."
     )
-    @PostMapping
+    @PostMapping("/register")
     public BankResponse createAccount(@RequestBody UserRequest userRequest){
-        return userService.createAccount(userRequest);
+        return authService.register(userRequest);
     }
+
+    @PostMapping("/login")
+    public BankResponse login(@RequestBody LoginDto loginDto){
+        return authService.login(loginDto);
+    }
+
 
     @Operation(
             summary = "Balance Enquiry",

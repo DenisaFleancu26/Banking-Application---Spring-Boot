@@ -1,10 +1,13 @@
 package com.bank.banking_application.service;
 
+import com.bank.banking_application.config.JwtTokenProvider;
 import com.bank.banking_application.dto.*;
 import com.bank.banking_application.entity.User;
 import com.bank.banking_application.repository.UserRepository;
 import com.bank.banking_application.utils.AccountUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -21,63 +24,33 @@ public class UserServiceImpl implements UserService{
     @Autowired
     TransactionService transactionService;
 
+    @Autowired
+    PasswordEncoder passwordEncoder;
 
-    @Override
-    public BankResponse createAccount(UserRequest userRequest) {
+    @Autowired
+    AuthenticationManager authenticationManager;
 
-        if(userRepository.existsByEmail(userRequest.getEmail())){
-            return buildResponse(AccountUtils.ACCOUNT_EXISTS_CODE, AccountUtils.ACCOUNT_EXISTS_MESSAGE, null);
-        }
-
-        User newUser = User.builder()
-                .firstName(userRequest.getFirstName())
-                .lastName(userRequest.getLastName())
-                .gender(userRequest.getGender())
-                .address(userRequest.getAddress())
-                .stateOfOrigin(userRequest.getStateOfOrigin())
-                .accountNumber(AccountUtils.generateAccountNumber())
-                .accountBalance(BigDecimal.ZERO)
-                .email(userRequest.getEmail())
-                .phoneNumber(userRequest.getPhoneNumber())
-                .status("ACTIVE")
-                .build();
-
-        User savedUser = userRepository.save(newUser);
-        // Send email Alert
-        EmailDetails emailDetails = EmailDetails.builder()
-                .recipient(userRequest.getEmail())
-                .subject("ACCOUNT CREATION")
-                .messageBody("Congratulations! Your Account has been successfully created!" +
-                        "\nYour account details:" +
-                        "\nAccount Name: " + savedUser.getFirstName() + " " + savedUser.getLastName() +
-                        "\nAccount Number: " + savedUser.getAccountNumber())
-                .build();
-        emailService.sendEmailAlert(emailDetails);
-        return  buildResponse(
-                AccountUtils.ACCOUNT_CREATION_SUCCESS,
-                AccountUtils.ACCOUNT_CREATION_MESSAGE,
-                buildAccountInfo(savedUser)
-        );
-    }
+    @Autowired
+    JwtTokenProvider jwtTokenProvider;
 
     @Override
     public BankResponse balanceEnquiry(EnquiryRequest enquiryRequest) {
         if (!userRepository.existsByAccountNumber(enquiryRequest.getAccountNumber())){
-            return buildResponse(AccountUtils.ACCOUNT_NOT_EXISTS_CODE, AccountUtils.ACCOUNT_NOT_EXISTS_MESSAGE, null);
+            return AccountUtils.buildResponse(AccountUtils.ACCOUNT_NOT_EXISTS_CODE, AccountUtils.ACCOUNT_NOT_EXISTS_MESSAGE, null);
         }
 
         User foundUser = userRepository.findByAccountNumber(enquiryRequest.getAccountNumber());
-        return buildResponse(
+        return AccountUtils.buildResponse(
                 AccountUtils.ACCOUNT_FOUND_CODE,
                 AccountUtils.ACCOUNT_FOUND_MESSAGE,
-                buildAccountInfo(foundUser)
+                AccountUtils.buildAccountInfo(foundUser)
         );
     }
 
     @Override
     public BankResponse creditAccount(CreditDebitRequest request) {
         if (!userRepository.existsByAccountNumber(request.getAccountNumber())){
-            return buildResponse(AccountUtils.ACCOUNT_NOT_EXISTS_CODE, AccountUtils.ACCOUNT_NOT_EXISTS_MESSAGE, null);
+            return AccountUtils.buildResponse(AccountUtils.ACCOUNT_NOT_EXISTS_CODE, AccountUtils.ACCOUNT_NOT_EXISTS_MESSAGE, null);
         }
 
         User userToCredit = userRepository.findByAccountNumber(request.getAccountNumber());
@@ -91,22 +64,22 @@ public class UserServiceImpl implements UserService{
                 .build();
         transactionService.saveTransaction(transactionDTO);
 
-        return buildResponse(
+        return AccountUtils.buildResponse(
                 AccountUtils.ACCOUNT_CREDITED_SUCCESS,
                 AccountUtils.ACCOUNT_CREDITED_SUCCESS_MESSAGE,
-                buildAccountInfo(userToCredit)
+                AccountUtils.buildAccountInfo(userToCredit)
         );
     }
 
     @Override
     public BankResponse debitAccount(CreditDebitRequest request) {
         if (!userRepository.existsByAccountNumber(request.getAccountNumber())){
-            return buildResponse(AccountUtils.ACCOUNT_NOT_EXISTS_CODE, AccountUtils.ACCOUNT_NOT_EXISTS_MESSAGE, null);
+            return AccountUtils.buildResponse(AccountUtils.ACCOUNT_NOT_EXISTS_CODE, AccountUtils.ACCOUNT_NOT_EXISTS_MESSAGE, null);
         }
 
         User userToDebit = userRepository.findByAccountNumber(request.getAccountNumber());
         if(userToDebit.getAccountBalance().compareTo(request.getAmount()) < 0){
-            return buildResponse(AccountUtils.INSUFFICIENT_BALANCE_CODE, AccountUtils.INSUFFICIENT_BALANCE_MESSAGE, null);
+            return AccountUtils.buildResponse(AccountUtils.INSUFFICIENT_BALANCE_CODE, AccountUtils.INSUFFICIENT_BALANCE_MESSAGE, null);
         }
 
         userToDebit.setAccountBalance(userToDebit.getAccountBalance().subtract(request.getAmount()));
@@ -119,10 +92,10 @@ public class UserServiceImpl implements UserService{
                 .build();
         transactionService.saveTransaction(transactionDTO);
 
-        return buildResponse(
+        return AccountUtils.buildResponse(
                 AccountUtils.ACCOUNT_DEBITED_SUCCESS,
                 AccountUtils.ACCOUNT_DEBITED_SUCCESS_MESSAGE,
-                buildAccountInfo(userToDebit)
+                AccountUtils.buildAccountInfo(userToDebit)
         );
 
     }
@@ -132,11 +105,11 @@ public class UserServiceImpl implements UserService{
 
         User sourceUser = userRepository.findByAccountNumber(request.getSourceAccountNumber());
         if(sourceUser.getAccountBalance().compareTo(request.getAmount()) < 0){
-            return buildResponse(AccountUtils.INSUFFICIENT_BALANCE_CODE, AccountUtils.INSUFFICIENT_BALANCE_MESSAGE, null);
+            return AccountUtils.buildResponse(AccountUtils.INSUFFICIENT_BALANCE_CODE, AccountUtils.INSUFFICIENT_BALANCE_MESSAGE, null);
         }
 
         if(!userRepository.existsByAccountNumber(request.getDestinationAccountNumber())){
-            return buildResponse(AccountUtils.ACCOUNT_NOT_EXISTS_CODE, AccountUtils.ACCOUNT_NOT_EXISTS_MESSAGE, null);
+            return AccountUtils.buildResponse(AccountUtils.ACCOUNT_NOT_EXISTS_CODE, AccountUtils.ACCOUNT_NOT_EXISTS_MESSAGE, null);
         }
         User destinationUser = userRepository.findByAccountNumber(request.getDestinationAccountNumber());
 
@@ -156,7 +129,7 @@ public class UserServiceImpl implements UserService{
                 .build();
         transactionService.saveTransaction(transactionDTO2);
 
-        return buildResponse(AccountUtils.ACCOUNT_TRANSFER_SUCCESS, AccountUtils.ACCOUNT_TRANSFER_SUCCESS_MESSAGE, null);
+        return AccountUtils.buildResponse(AccountUtils.ACCOUNT_TRANSFER_SUCCESS, AccountUtils.ACCOUNT_TRANSFER_SUCCESS_MESSAGE, null);
     }
 
     private void processTransfer(User sourceUser, User destinationUser, BigDecimal amount){
@@ -185,22 +158,5 @@ public class UserServiceImpl implements UserService{
 
         emailService.sendEmailAlert(debitAlert);
         emailService.sendEmailAlert(creditAlert);
-    }
-
-
-    private BankResponse buildResponse(String code, String message, AccountInfo info) {
-        return BankResponse.builder()
-                .responseCode(code)
-                .responseMessage(message)
-                .accountInfo(info)
-                .build();
-    }
-
-    private AccountInfo buildAccountInfo(User user) {
-        return AccountInfo.builder()
-                .accountName(user.getFirstName() + " " + user.getLastName())
-                .accountNumber(user.getAccountNumber())
-                .accountBalance(user.getAccountBalance())
-                .build();
     }
 }
