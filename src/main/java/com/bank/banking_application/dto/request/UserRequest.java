@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 import jakarta.validation.constraints.NotBlank;
 
 @Data
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserRequest {
@@ -44,7 +43,7 @@ public class UserRequest {
 
     @Schema(name = "Password")
     @NotBlank(message = "Password is required!")
-    @Email(message = "Password must be valid!")
+    @Size(min = 6, message = "Password must be at least 6 characters")
     private String password;
 
     @Schema(name = "Phone Number")

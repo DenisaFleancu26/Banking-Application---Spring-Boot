@@ -50,7 +50,7 @@ public class SecurityConfig {
     SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers( "/api/user/login", "/api/user/register").permitAll()
+                        .requestMatchers( "/api/user/auth/login", "/api/user/auth/register").permitAll()
                         .anyRequest().authenticated());
 
         httpSecurity.sessionManagement(session-> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));

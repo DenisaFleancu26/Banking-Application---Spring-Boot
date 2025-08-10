@@ -1,67 +1,75 @@
 package com.bank.banking_application.service.impl;
 
-import com.bank.banking_application.dto.EmailDetails;
+import com.bank.banking_application.dto.response.EmailDetails;
 import com.bank.banking_application.entity.Transaction;
 import com.bank.banking_application.entity.User;
 import com.bank.banking_application.repository.TransactionRepository;
 import com.bank.banking_application.repository.UserRepository;
 import com.bank.banking_application.service.interfaces.EmailService;
+import com.bank.banking_application.utils.AccountUtils;
 import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.security.auth.login.AccountNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @Slf4j
-public class BankStatement {
+@RequiredArgsConstructor
+public class BankStatementService {
 
-    @Autowired
-    private TransactionRepository transactionRepository;
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private EmailService emailService;
+    private final TransactionRepository transactionRepository;
+    private final UserRepository userRepository;
+    private final EmailService emailService;
 
     @Value("${bank.statement.file}")
-    private String FILE;
+    private String folderPath;
 
-    public List<Transaction> generateStatement(String accountNumber, String startDate, String endDate) throws DocumentException, IOException {
+    public String generateStatement(String accountNumber, String startDate, String endDate) throws DocumentException, IOException, AccountNotFoundException {
         LocalDate start = LocalDate.parse(startDate, DateTimeFormatter.ISO_DATE);
         LocalDate end = LocalDate.parse(endDate, DateTimeFormatter.ISO_DATE);
+
+        if (start.isAfter(end)) {
+            throw new IllegalArgumentException(AccountUtils.ERROR_START_DATE_AFTER_END_DATE);
+        }
 
         List<Transaction> transactions = transactionRepository
                 .findByAccountNumberAndCreatedAtBetween(accountNumber, start, end);
 
-        User user = userRepository.findByAccountNumber(accountNumber);
-        designStatement(transactions, startDate, endDate, user);
+        User user = userRepository.findByAccountNumber(accountNumber)
+                .orElseThrow(() -> new AccountNotFoundException(String.format(AccountUtils.ACCOUNT_NOT_FOUND_MESSAGE, accountNumber)));
+
+        String uniqueFileName = folderPath + "bank_statement_" + accountNumber + "_" + UUID.randomUUID() + ".pdf";
+        designStatement(transactions, startDate, endDate, user, uniqueFileName);
 
         EmailDetails emailDetails = EmailDetails.builder()
                 .recipient(user.getEmail())
                 .subject("STATEMENT OF ACCOUNT")
                 .messageBody("Kindly find your request account statement attached!")
-                .attachment(FILE)
+                .attachment(uniqueFileName)
                 .build();
         emailService.sendEmailWithAttachment(emailDetails);
 
-        return transactions;
+        return "Statement sent successfully to " + user.getEmail();
     }
 
-    private void designStatement(List<Transaction> transactions, String startDate, String endDate, User user ) throws IOException, DocumentException {
+    private void designStatement(List<Transaction> transactions, String startDate, String endDate, User user, String filePath ) throws IOException, DocumentException {
 
         final Document document = new Document(PageSize.A4);
 
-        OutputStream outputStream = new FileOutputStream(FILE);
+        OutputStream outputStream = new FileOutputStream(filePath);
         PdfWriter.getInstance(document, outputStream);
         document.open();
 
