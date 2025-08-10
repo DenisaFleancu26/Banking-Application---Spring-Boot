@@ -1,51 +1,26 @@
 package com.bank.banking_application.controller;
 
-import com.bank.banking_application.dto.*;
-import com.bank.banking_application.dto.request.CreditDebitRequest;
-import com.bank.banking_application.dto.request.EnquiryRequest;
-import com.bank.banking_application.dto.request.TransferRequest;
-import com.bank.banking_application.dto.request.UserRequest;
+import com.bank.banking_application.dto.request.*;
 import com.bank.banking_application.dto.response.BankResponse;
-import com.bank.banking_application.service.interfaces.AuthService;
 import com.bank.banking_application.service.interfaces.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import javax.security.auth.login.AccountNotFoundException;
+
 @RestController
-@RequestMapping("/api/user")
-@Tag(name = "User Account Management APIs")
+@RequestMapping("/api/user/account")
+@Tag(name = "User Account APIs")
+@AllArgsConstructor
 public class UserController {
 
-    @Autowired
-    UserService userService;
-
-    @Autowired
-    AuthService authService;
+    private final UserService userService;
 
     @Operation(
-            summary = "Create New User Account",
-            description = "Creates a new bank user account and generates a unique account number."
-    )
-    @ApiResponse(
-            responseCode = "201",
-            description = "Account successfully created."
-    )
-    @PostMapping("/register")
-    public BankResponse createAccount(@RequestBody UserRequest userRequest){
-        return authService.register(userRequest);
-    }
-
-    @PostMapping("/login")
-    public BankResponse login(@RequestBody LoginDTO loginDto){
-        return authService.login(loginDto);
-    }
-
-
-    @Operation(
-            summary = "Balance Enquiry",
             description = "Retrieves the current balance for the account specified by the account number."
     )
     @ApiResponse(
@@ -53,7 +28,7 @@ public class UserController {
             description = "Balance retrieved successfully."
     )
     @PostMapping("/balanceEnquiry")
-    public BankResponse balanceEnquiry(@RequestBody EnquiryRequest request){
+    public BankResponse balanceEnquiry(@Valid @RequestBody EnquiryRequest request) throws AccountNotFoundException {
         return userService.balanceEnquiry(request);
     }
 
@@ -66,7 +41,7 @@ public class UserController {
             description = "Account successfully credited."
     )
     @PostMapping("/credit")
-    public BankResponse creditAccount (@RequestBody CreditDebitRequest request){
+    public BankResponse creditAccount (@Valid @RequestBody CreditDebitRequest request) throws AccountNotFoundException {
         return userService.creditAccount(request);
     }
 
@@ -79,7 +54,7 @@ public class UserController {
             description = "Account successfully debited."
     )
     @PostMapping("/debit")
-    public BankResponse debitAccount (@RequestBody CreditDebitRequest request){
+    public BankResponse debitAccount (@Valid @RequestBody CreditDebitRequest request) throws AccountNotFoundException {
         return userService.debitAccount(request);
     }
 
@@ -92,7 +67,7 @@ public class UserController {
             description = "Transfer completed successfully."
     )
     @PostMapping("/transfer")
-    public BankResponse transfer(@RequestBody TransferRequest request){
+    public BankResponse transfer(@Valid @RequestBody TransferRequest request) throws AccountNotFoundException {
         return  userService.transfer(request);
     }
 
