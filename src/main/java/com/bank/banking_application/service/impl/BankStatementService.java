@@ -117,11 +117,11 @@ public class BankStatementService {
 
     }
 
-    public static PdfPCell cell(String text, boolean border, int padding) {
+    private static PdfPCell cell(String text, boolean border, int padding) {
         return cell(text, Element.ALIGN_LEFT, 10, false, null, padding, null, border);
     }
 
-    public static PdfPCell cell(String text, int alignment, float size, boolean bold, BaseColor textColor, float padding, BaseColor bgColor, boolean border) {
+    private static PdfPCell cell(String text, int alignment, float size, boolean bold, BaseColor textColor, float padding, BaseColor bgColor, boolean border) {
         Font customFont = new Font(
                 Font.FontFamily.HELVETICA,
                 size,
