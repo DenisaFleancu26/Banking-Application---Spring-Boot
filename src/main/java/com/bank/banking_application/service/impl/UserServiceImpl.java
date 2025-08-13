@@ -71,7 +71,7 @@ public class UserServiceImpl implements UserService {
         User user = getUserByAccountNumber(request.getAccountNumber());
 
         if(user.getAccountBalance().compareTo(request.getAmount()) < 0){
-            throw new InsufficientBalanceException("Insufficient balance for debit");
+            throw new InsufficientBalanceException(AccountUtils.ERROR_INSUFFICIENT_BALANCE);
         }
 
         user.setAccountBalance(user.getAccountBalance().subtract(request.getAmount()));
